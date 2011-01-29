@@ -1,0 +1,32 @@
+[core]
+    pager = less
+[color]
+    diff = auto
+    status = auto
+    branch = auto
+[user]
+    name = Mikhail Glushenkov
+    email = the.dead.shall.rise@gmail.com
+[alias]
+    st = status
+    ci = commit
+    co = checkout
+    lg = log --stat
+    lp = log -p
+    lgp = log --stat -p
+    ds = diff --stat
+    br = branch
+    praise = blame
+    staged = diff --cached
+    stagedst = diff --cached --stat
+    unstaged = diff
+    unstage = reset
+    amend = commit --amend
+    lol = log --graph --decorate --pretty=oneline --abbrev-commit
+    lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+    me = log --author=\"foldr\" --after=yesterday --no-merges --format=%s, --reverse
+[merge]
+    tool = meld
+    conflictstyle = diff3
+[color]
+    ui = auto
