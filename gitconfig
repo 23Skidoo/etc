@@ -25,6 +25,7 @@
     lol = log --graph --decorate --pretty=oneline --abbrev-commit
     lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
     me = log --author=\"foldr\" --after=yesterday --no-merges --format=%s, --reverse
+    wdiff = diff --color-words
 [merge]
     tool = meld
     conflictstyle = diff3
