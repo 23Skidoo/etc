@@ -147,12 +147,12 @@ ${color white}Networking:$color
 ${color white}Disk usage:$color
  ${color white}/$color     ${fs_used /}/${fs_size /} (${fs_free /} free)
       ${fs_bar /}
- ${color white}/C  $color   ${fs_used /media/C_}/${fs_size /media/C_} (${fs_free /media/C_} free)
-      ${fs_bar /media/C_}
- ${color white}/E  $color   ${fs_used /media/E_}/${fs_size /media/E_} (${fs_free /media/E_} free)
-      ${fs_bar /media/E_}
- ${color white}/F  $color   ${fs_used /media/F_}/${fs_size /media/F_} (${fs_free /media/F_} free)
-      ${fs_bar /media/F_}
+ ${color white}/C  $color   ${fs_used /media/C}/${fs_size /media/C} (${fs_free /media/C} free)
+      ${fs_bar /media/C}
+ ${color white}/E  $color   ${fs_used /media/E}/${fs_size /media/E} (${fs_free /media/E} free)
+      ${fs_bar /media/E}
+ ${color white}/F  $color   ${fs_used /media/F}/${fs_size /media/F} (${fs_free /media/F} free)
+      ${fs_bar /media/F}
 ${color white}Temperatures:
 $color CPU: ${acpitemp}°C HDA: ${hddtemp /dev/sda}°C HDB: ${hddtemp /dev/sdb}°C
 ${color white}Name              PID     CPU%   MEM%$color
