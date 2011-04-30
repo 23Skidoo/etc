@@ -9,7 +9,7 @@ then
 
     # PATH-related
     export PATH=$PATH:/home/gman/bin:/home/gman/.cabal/bin
-    export PATH=$PATH:/home/gman/bin/ghc-6.12.3/bin
+    export PATH=$PATH:/home/gman/bin/ghc-7.0.3/bin
 fi
 
 export EDITOR="emacsclient -t -a vim"
