@@ -1,0 +1,3 @@
+-- hoogle integration
+:def hoogle \q -> return $ ":! hoogle --color=true --count=15   \"" ++ q ++ "\""
+:def doc    \q -> return $ ":! hoogle --color=true --info       \"" ++ q ++ "\""
