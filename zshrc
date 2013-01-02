@@ -7,45 +7,29 @@ export HISTSIZE=10000
 export SAVEHIST=$HISTSIZE
 export WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
+if [ ! "$CYGWIN" ]
+then
+    export CODE_DIR=~/code
+fi
+
 if [ "$CYGWIN" ]
 then
+    export CODE_DIR=/c/code
     alias git=git.cmd
     alias gitk=gitk.cmd
 fi
 
-if [ ! "$CYGWIN" ]
-then
-    export CODEDGERS=~/code/codedgers
-    export GHC_DIR=~/code/haskell/ghc
-    export GHC_OBJ_DIR=~/code/haskell/ghc-obj
-    export YI_DIR=~/code/haskell/yi
-    export UMU_DIR=~/code/umu
-    export DOCS_DIR="/f/The Sims/docs"
-fi
+export UMU_DIR=$CODE_DIR/umu
+export DOCS_DIR="/f/The Sims/docs"
 
-if [ "$CYGWIN" ]
-then
-    export CODEDGERS=/c/code/codedgers
-fi
+export HASKELL_DIR=$CODE_DIR/haskell
+export CABAL_ROOT_DIR=$HASKELL_DIR/cabal
+export CABAL_DIR=$CABAL_ROOT_DIR/Cabal
+export CABAL_INSTALL_DIR=$CABAL_ROOT_DIR/cabal-install
+export GHC_DIR=$HASKELL_DIR/ghc
+export GHC_OBJ_DIR=$HASKELL_DIR/ghc-obj
 
-export LLVM_DIR=$CODEDGERS/llvm
-export LLVM_OBJ_DIR=$CODEDGERS/llvm-obj
-export TBLGEN_DIR=$LLVM_DIR/utils/TableGen
-export DRIVER_DIR=$LLVM_DIR/tools/llvmc
-export DRIVER_OBJ_DIR=$LLVM_OBJ_DIR/tools/llvmc
-export DRIVER_LIB_DIR=$LLVM_DIR/lib/CompilerDriver
-export DRIVER_INCLUDE_DIR=$LLVM_DIR/include/llvm/CompilerDriver
-export CLANG_DIR=$CODEDGERS/clang
-
-export MORPHER_DIR=$CODEDGERS/morpher
-export PROJ_DIR=$MORPHER_DIR/src/projects/morpher
-export PROJ_OBJ_DIR=$MORPHER_DIR/obj/projects/morpher
-export AQUAVIVA_DIR=$PROJ_DIR/tools/aquaviva
-export MERCURIAN_DIR=$PROJ_DIR/tools/mercurian
-export FRONTEND_DIR=$PROJ_DIR/tools/frontend
-export TOOLS_OBJ_DIR=$MORPHER_DIR/obj/projects/morpher/tools
-
-# Colorify output of some commonly used programs
+# Colorify the output of some commonly used programs
 export GREP_OPTIONS='--color=auto --mmap'
 export GREP_COLOR='1;32'
 alias ls="ls -F --human-readable --color=auto"
@@ -54,7 +38,9 @@ alias ll="ls -l --group-directories-first"
 # Shortcuts
 alias rezshrc="source ~/.zshrc"
 alias ack=ack-grep
-alias del=gvfs-trash -f
+alias del="gvfs-trash -f"
+alias clj="CLASSPATH=/usr/share/java/clojure-contrib.jar rlwrap clojure"
+alias ocml="rlwrap ocaml"
 
 # Turn on control keys in mpg123
 alias mpg123="mpg123 --control"
