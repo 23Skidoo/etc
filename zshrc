@@ -30,8 +30,8 @@ export GHC_DIR=$HASKELL_DIR/ghc
 export GHC_OBJ_DIR=$HASKELL_DIR/ghc-obj
 
 # Colorify the output of some commonly used programs
-export GREP_OPTIONS='--color=auto --mmap'
 export GREP_COLOR='1;32'
+alias grep="grep --color=auto"
 alias ls="ls -F --human-readable --color=auto"
 alias ll="ls -l --group-directories-first"
 
@@ -44,12 +44,6 @@ alias ocml="rlwrap ocaml"
 
 # Turn on control keys in mpg123
 alias mpg123="mpg123 --control"
-
-# Make Scons quiet
-alias scons="scons -Q"
-
-# Make PARI/GP quiet
-alias gp="gp -q"
 
 # Shut up idiotic Lynx prompts
 alias lynx="lynx -cookies"
@@ -111,7 +105,6 @@ PS1='%{$fg[yellow]%}%n%{$reset_color%}@%{$fg_bold[blue]%}%M%{$reset_color%}:%{$f
 # Some options
 bindkey -e  # Emacs-style keymap
 setopt autopushd share_history appendhistory autocd extendedglob nomatch
-setopt correctall
 setopt hist_ignore_all_dups hist_ignore_space hist_reduce_blanks
 setopt multios # multiple redirection for I/O
 unsetopt beep # don't EVER use the pc speaker
