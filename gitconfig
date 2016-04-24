@@ -6,14 +6,14 @@
     branch = auto
 [user]
     name = Mikhail Glushenkov
-    email = the.dead.shall.rise@gmail.com
+    email = mikhail.glushenkov@gmail.com
 [alias]
     st = status
     ci = commit
     co = checkout
     lg = log --stat
-    lp = log -p
-    lgp = log --stat -p
+    lp = log -p -M
+    lgp = log --stat -p -M
     ds = diff --stat
     br = branch
     praise = blame
@@ -37,4 +37,4 @@
 [rebase]
     autosquash = true
 [push]
-	default = matching
+    default = matching
