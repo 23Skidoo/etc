@@ -7,28 +7,6 @@ export HISTSIZE=10000
 export SAVEHIST=$HISTSIZE
 export WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
-if [ ! "$CYGWIN" ]
-then
-    export CODE_DIR=~/code
-fi
-
-if [ "$CYGWIN" ]
-then
-    export CODE_DIR=/c/code
-    alias git=git.cmd
-    alias gitk=gitk.cmd
-fi
-
-export UMU_DIR=$CODE_DIR/umu
-export DOCS_DIR="/f/The Sims/docs"
-
-export HASKELL_DIR=$CODE_DIR/haskell
-export CABAL_ROOT_DIR=$HASKELL_DIR/cabal
-export CABAL_DIR=$CABAL_ROOT_DIR/Cabal
-export CABAL_INSTALL_DIR=$CABAL_ROOT_DIR/cabal-install
-export GHC_DIR=$HASKELL_DIR/ghc
-export GHC_OBJ_DIR=$HASKELL_DIR/ghc-obj
-
 # Colorify the output of some commonly used programs
 export GREP_COLOR='1;32'
 alias grep="grep --color=auto"
@@ -37,9 +15,7 @@ alias ll="ls -l --group-directories-first"
 
 # Shortcuts
 alias rezshrc="source ~/.zshrc"
-alias ack=ack-grep
 alias del="gvfs-trash -f"
-alias clj="CLASSPATH=/usr/share/java/clojure-contrib.jar rlwrap clojure"
 alias ocml="rlwrap ocaml"
 
 # Turn on control keys in mpg123
@@ -49,9 +25,9 @@ alias mpg123="mpg123 --control"
 alias lynx="lynx -cookies"
 
 # Emacsclient aliases
-alias ec="emacsclient -t"
-alias ecw="emacsclient"
-alias ecc="emacsclient -c"
+alias ec="emacsclient -t -a zile"
+alias ecw="emacsclient -a gedit"
+alias ecc="emacsclient -c -a gedit"
 
 # get the name of the Git branch we are on
 # http://www.jukie.net/~bart/blog/zsh-git-branch2

@@ -1,33 +1,26 @@
 # -*- shell-script -*-
 
-if [ ! "$CYGWIN" ]
-then
-    # Misc settings
-    export PYTHONSTARTUP=$HOME/.python
-    export BC_ENV_ARGS="-q -l $HOME/misc/extensions.bc"
-    export PAGER=most
+# Misc settings
+export PYTHONSTARTUP=$HOME/.python
+export BC_ENV_ARGS="-q -l $HOME/misc/extensions.bc"
+export PAGER=most
 
-    # PATH-related
-    export BIN_DIR=$HOME/bin
-    export PATH=$PATH:$BIN_DIR/sbt/bin
-    export PATH=$PATH:$BIN_DIR:$HOME/.cabal/bin
-    export PATH=$PATH:$BIN_DIR/ghc-7.4.2/bin
-    export PATH=$PATH:$BIN_DIR/opam/bin
-    eval `opam config -env`
-fi
+# Set up PATH.
+export BIN_DIR=$HOME/bin
+export PATH=$PATH:/opt/ghc/8.0.2/bin
+export PATH=$PATH:$BIN_DIR:$HOME/.cabal/bin
+export PATH=$PATH:/opt/cabal/1.24/bin
+export PATH=$PATH:/opt/alex/3.1.7/bin
+export PATH=$PATH:/opt/cabal/1.19.5/bin
+
+# Set up some common dir aliases.
+export CODE_DIR=~/code
+export HASKELL_DIR=$CODE_DIR/haskell
+export CABAL_ROOT_DIR=$HASKELL_DIR/cabal
+export CABAL_DIR=$CABAL_ROOT_DIR/Cabal
+export CABAL_INSTALL_DIR=$CABAL_ROOT_DIR/cabal-install
+export GHC_DIR=$HASKELL_DIR/ghc
+export GHC_OBJ_DIR=$HASKELL_DIR/ghc-obj
 
 export EDITOR="emacsclient -t -a zile"
 export INFOPATH=$HOME/misc/info:
-
-if [ ! "$CYGWIN" ]
-then
-    # Set up EC2
-    # export EC2_HOME=$HOME/.ec2
-    # export EC2_PRIVATE_KEY=$EC2_HOME/pk-KEYID.pem
-    # export EC2_CERT=$EC2_HOME/cert-CERTID.pem
-    # export EC2_URL=https://ec2.eu-west-1.amazonaws.com
-    source $HOME/misc/ec2.sh
-
-    # Start the Emacs daemon
-    $HOME/bin/emacs-start
-fi
