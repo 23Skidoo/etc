@@ -11,7 +11,7 @@ export PATH=$PATH:/opt/ghc/8.0.2/bin
 export PATH=$PATH:$BIN_DIR:$HOME/.cabal/bin
 export PATH=$PATH:/opt/cabal/1.24/bin
 export PATH=$PATH:/opt/alex/3.1.7/bin
-export PATH=$PATH:/opt/cabal/1.19.5/bin
+export PATH=$PATH:/opt/happy/1.19.5/bin
 
 # Set up some common dir aliases.
 export CODE_DIR=~/code
