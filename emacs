@@ -6,64 +6,203 @@
 ;; Common Lisp compatibility
 (require 'cl)
 
-;; el-get
-(setq my-packages '(auctex
-                    auto-complete
-                    hs-lint
-                    markdown-mode
-                    yaml-mode
-                    cider
-                    color-theme-solarized
-                    ethan-wspace
-                    haskell-mode
-                    htmlize
-                    rect-mark
-                    rst-mode
-                    tabbar
-                    yasnippet))
-
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-(unless (require 'el-get nil 'noerror)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
-
-(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-
-(el-get 'sync my-packages)
-
-;; color-theme
-(setq color-theme-is-global nil)
-(setq solarized-italic nil)
-
-;; Enable color-theme-solarized only for emacsclient -w.
-(defvar after-make-console-frame-hooks '()
-  "Hooks to run after creating a new TTY frame")
-(defvar after-make-window-system-frame-hooks '()
-  "Hooks to run after creating a new window-system frame")
-
-(defun run-after-make-frame-hooks (frame)
-  "Selectively run either `after-make-console-frame-hooks' or
-`after-make-window-system-frame-hooks'"
-  (select-frame frame)
-  (run-hooks (if window-system
-                 'after-make-window-system-frame-hooks
-               'after-make-console-frame-hooks)))
-
-(add-hook 'after-make-frame-functions 'run-after-make-frame-hooks)
-(add-hook 'after-init-hook
-          (lambda ()
-            (run-after-make-frame-hooks (selected-frame))))
-
-(add-hook 'after-make-window-system-frame-hooks
-          (lambda () (load-theme 'solarized)))
-
 ;; OS detection
 (defconst mswindows-p (string-match "windows" (symbol-name system-type)))
 (defconst linux-p (string-match "linux" (symbol-name system-type)))
+
+;; Separate custom file.
+(setq custom-file (concat user-emacs-directory "custom.el"))
+(load custom-file 'noerror)
+
+;; Dependencies
+(require 'package)
+(add-to-list 'package-archives
+         '("melpa" . "https://melpa.org/packages/") t)
+(add-to-list 'package-archives
+         '("marmalade" . "https://marmalade-repo.org/packages/") t)
+(package-initialize)
+(if (require 'quelpa nil t)
+  (quelpa-self-upgrade)
+  (with-temp-buffer
+    (url-insert-file-contents
+     "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
+    (eval-buffer)))
+(quelpa '(quelpa-use-package :fetcher github :repo "quelpa/quelpa-use-package"))
+(require 'use-package)
+(require 'quelpa-use-package)
+(setq use-package-always-ensure t)
+
+(use-package abbrev
+  :ensure nil
+  :diminish abbrev-mode
+  :config
+    (if (file-exists-p abbrev-file-name)
+        (quietly-read-abbrev-file)))
+
+(use-package ag :quelpa)
+
+;; Alias for align-regexp
+(use-package align
+  :bind ("C-x a r" . align-regexp))
+
+(use-package auctex :quelpa
+  :mode ("\\.tex\\'" . latex-mode)
+  :commands (latex-mode LaTeX-mode plain-tex-mode)
+  :init ;; (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+        ;; (add-hook 'LaTeX-mode-hook #'flyspell-mode)
+        ;; (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+        (setq TeX-auto-save t
+              TeX-parse-self t
+              TeX-save-query nil
+              TeX-PDF-mode t))
+
+(use-package color-theme)
+(use-package color-theme-solarized :quelpa :demand
+             :init (load-theme 'solarized))
+;;   (setq solarized-italic nil)
+;; (setq color-theme-is-global nil)
+;; ;; Enable color-theme-solarized only for emacsclient -w.
+;; (defvar after-make-console-frame-hooks '()
+;;   "Hooks to run after creating a new TTY frame")
+;; (defvar after-make-window-system-frame-hooks '()
+;;   "Hooks to run after creating a new window-system frame")
+
+;; (defun run-after-make-frame-hooks (frame)
+;;   "Selectively run either `after-make-console-frame-hooks' or
+;; `after-make-window-system-frame-hooks'"
+;;   (select-frame frame)
+;;   (run-hooks (if window-system
+;;                  'after-make-window-system-frame-hooks
+;;                'after-make-console-frame-hooks)))
+
+;; (add-hook 'after-make-frame-functions 'run-after-make-frame-hooks)
+;; (add-hook 'after-init-hook
+;;           (lambda ()
+;;             (run-after-make-frame-hooks (selected-frame))))
+
+;; (add-hook 'after-make-window-system-frame-hooks
+;;           (lambda () (load-theme 'solarized)))
+
+(use-package diminish :quelpa :demand)
+
+(use-package company :quelpa :demand
+  :config
+    (company-mode t)
+    (use-package company-flx :quelpa :config (company-flx-mode t))
+    (use-package company-quickhelp :quelpa :config (company-quickhelp-mode t))
+    (use-package company-cabal :quelpa
+       :config (add-to-list 'company-backends 'company-cabal)))
+
+;; Be obsessive-compulsive about trailing whitespace.
+(use-package ethan-wspace :quelpa :demand
+  :init
+    (setq mode-require-final-newline nil)
+  :config
+    (global-ethan-wspace-mode 1)
+    (setq ethan-wspace-face '(t (:background "#05ff00")))
+    (setq ethan-wspace-face-customized t))
+
+(use-package haskell-mode :quelpa
+  :init
+    (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+    (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+  :config
+    (setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
+    (use-package haskell-cabal
+                 :commands haskell-cabal-mode
+                 :mode "\\.cabal\\'"
+                 :ensure nil
+                 :bind-keymap ("C-c C-c" . haskell-compile))
+  :bind-keymap
+    (("C-," . haskell-move-nested-left)
+     ("C-." . haskell-move-nested-right)
+     ("C-c C-c" . haskell-compile)
+     ("C-x C-d" . nil)
+     ("C-c C-z" . haskell-interactive-switch)
+     ("C-c C-b" . haskell-interactive-switch)
+     ("C-c C-t" . haskell-process-do-type)
+     ("C-c C-i" . haskell-process-do-info)
+     ("C-c M-." . nil)
+     ("C-c C-d" . nil)))
+
+(use-package which-func
+  :ensure nil
+  :config (add-to-list 'which-func-modes 'haskell-mode))
+
+(use-package htmlize :quelpa)
+
+(use-package ido :demand
+  :init
+    (setq ido-enable-prefix nil
+          ido-enable-flex-matching t
+          ido-auto-merge-work-directories-length nil
+          ido-everywhere t
+          ido-create-new-buffer 'always
+          ido-use-filename-at-point 'guess)
+  :config
+    (ido-mode t)
+    (use-package ido-ubiquitous :quelpa :config (ido-ubiquitous-mode t))
+    (use-package flx-ido :quelpa :config (flx-ido-mode t))
+    (use-package ido-vertical-mode :quelpa :config (ido-vertical-mode t))
+    (use-package ido-yes-or-no :quelpa :config (ido-yes-or-no-mode t)))
+
+(use-package ielm
+  :ensure nil
+  :config
+    (add-hook 'inferior-emacs-lisp-mode-hook
+              (lambda ()
+                (turn-on-eldoc-mode))))
+
+(use-package intero :quelpa)
+
+(use-package markdown-mode :quelpa)
+
+;; Highlight matching parentheses.
+(use-package paren
+  :config
+    (show-paren-mode t))
+
+(use-package pos-tip :quelpa)
+
+(use-package projectile :quelpa)
+
+(use-package recentf
+  :config
+    (setq recentf-save-file (expand-file-name "~/.recentf"))
+    (recentf-mode t))
+
+(use-package rect-mark)
+
+(use-package rst-mode :quelpa)
+
+(use-package smex :quelpa :demand
+  :bind (("M-x" . smex)
+         ("M-X" . smex-major-mode-commands)
+         ("C-c M-x" . execute-extended-command)))
+
+(use-package tabbar :quelpa :demand
+ :config
+   (tabbar-mode)
+   ;; Tweak faces
+   (set-face-attribute 'tabbar-default nil :background "gray60")
+   (set-face-attribute 'tabbar-unselected nil :background "gray85"
+                       :foreground "gray30" :box nil)
+   (set-face-attribute 'tabbar-selected nil :background "#f2f2f6"
+                       :foreground "black" :box nil)
+   (set-face-attribute 'tabbar-button nil
+                       :box '(:line-width 1 :color "gray72"
+                                          :style released-button))
+   (set-face-attribute 'tabbar-separator nil :height 0.7)
+
+ :bind
+   ;; Ctrl-Tab/Ctrl-Shift-Tab for going forward/backwards between tabs
+   (([control shift tab] . tabbar-backward)
+    ([control tab] . tabbar-forward)))
+
+(use-package yaml-mode :quelpa)
+
+(use-package yasnippet :quelpa
+  :init (yas-global-mode 1))
 
 ;; Do not show splash screen
 (setq inhibit-startup-message t)
@@ -74,35 +213,76 @@
       (setq x-select-enable-primary nil)
       (setq x-select-enable-clipboard t)))
 
-;; Don't clutter current directory with autosave/backup.
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+;; Don't clutter current directory with backups.
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
 
-;; 'y' instead of 'yes'
-(fset 'yes-or-no-p 'y-or-n-p)
-;; Misc tweaks
+;; Misc tweaks.
 (setq scroll-step 1)
 (setq scroll-conservatively 5)
-(find-file "~/")
-(tool-bar-mode 0)
 (menu-bar-mode 0)
-(delete-selection-mode t)
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode 0))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode 0))
+(use-package fringe
+  :ensure nil
+  :config (set-fringe-mode nil))
+(when (fboundp 'horizontal-scroll-bar-mode)
+  (horizontal-scroll-bar-mode 0))
+;; Unique bufffer names
+(use-package uniquify
+  :ensure nil
+  :config (setq uniquify-buffer-name-style 'forward))
+;; Save point position in visited files.
+(use-package saveplace :demand
+  :config (setq-default save-place t))
+;; Save minibuffer history.
+(use-package savehist
+  :config
+    (setq savehist-additional-variables
+          '(kill-ring mark-ring global-mark-ring search-ring
+                      regexp-search-ring extended-command-history))
+    (savehist-mode t))
+
+(use-package misc
+  :ensure nil
+  :bind ("M-z" . zap-up-to-char))
+
+(use-package hippie-exp
+  :bind ("M-/" . hippie-expand))
+
+(use-package ibuffer
+  :bind ("C-x C-b" . ibuffer))
+
+(use-package isearch
+  :ensure nil
+  :bind
+    ("C-s" . isearch-forward-regexp)
+    ("C-r" . isearch-backward-regexp)
+    ("C-M-s" . isearch-forward)
+    ("C-M-r" . isearch-backward))
+
+(setq-default indent-tabs-mode nil)
+(setq save-interprogram-paste-before-kill t
+      apropos-do-all t
+      mouse-yank-at-point t
+      load-prefer-newer t
+      ediff-window-setup-function 'ediff-setup-windows-plain
+      save-place-file (concat user-emacs-directory "places"))
+
+(use-package delsel
+  :config (delete-selection-mode t))
+
 ; Make (shebanged) scripts executable automatically
 (add-hook 'after-save-hook
           'executable-make-buffer-file-executable-if-script-p)
 
 ;; Show line and column numbers
-(line-number-mode 1)
-(column-number-mode 1)
-;; Maximize frame on startup (on Win32; on Linux this is done by devilspie)
-(if mswindows-p
-    (setq emacsw32-max-frames t))
-
-;; Scrollbar
-(scroll-bar-mode 0)
-(set-fringe-mode nil)
+(use-package simple
+  :ensure nil
+  :config
+    (line-number-mode 1)
+    (column-number-mode 1))
 
 ;; Copy lines without selecting them
 (defadvice kill-ring-save
@@ -121,15 +301,6 @@
       (list (line-beginning-position)
         (line-beginning-position 2)))))
 
-;; Alias for M-x
-(global-set-key "\C-c\C-x" 'execute-extended-command)
-;; Compilation key
-(global-set-key [f8] 'recompile)
-(setq mode-compile-always-save-buffer-p t)
-;; Make the compile window stick at 12 lines tall
-(setq compilation-window-height 12)
-;; Alias for align-regexp
-(global-set-key (kbd "C-x a r") 'align-regexp)
 ;; language settings
 (global-set-key [f6] '(lambda () (interactive)
                         (set-input-method "russian-computer")))
@@ -220,22 +391,23 @@
 (when linux-p (add-to-list 'default-frame-alist '(font-backend . "xft"))
       (add-to-list 'default-frame-alist '(font . "Terminus-10")))
 
-;;highlight matching parentheses
-(show-paren-mode t)
 ;; Flicker instead of beep
 (setq visible-bell 1)
 ;; Highlight selected region
 (setq-default transient-mark-mode t)
 
-;; Be obsessive-compulsive about trailing whitespace
-;; (add-hook 'before-save-hook 'whitespace-cleanup)
-(setq mode-require-final-newline nil)
-(global-ethan-wspace-mode 1)
-(setq ethan-wspace-face '(t (:background "#05ff00")))
-(setq ethan-wspace-face-customized t)
+(use-package compile
+  :bind ([f8] . recompile)
+  :init
+    (setq mode-compile-always-save-buffer-p t)
+    ;; Make the compile window stick at 12 lines tall
+    (setq compilation-window-height 12)
+    ;; Scroll output of *compilation*
+    (setq compilation-scroll-output 'first-error))
 
-;; Scroll output of *compilation*
-(setq compilation-scroll-output 'first-error)
+(use-package dockerfile-mode :quelpa
+  :mode ("Dockerfile\\'" . dockerfile-mode))
+
 ;; Indicate empty lines.
 (set-default 'indicate-empty-lines t)
 
@@ -261,113 +433,8 @@
 ;; Disable vc
 (setq vc-handled-backends nil)
 
-;; Use ack for searching
-(setq ack-command "ack-grep --nocolor --nogroup ")
-
-;; Ido completion
-(ido-mode t)
-(setq ido-enable-prefix nil
-      ido-enable-flex-matching t
-      ido-auto-merge-work-directories-length nil
-      ido-create-new-buffer 'always
-      ido-use-filename-at-point 'guess)
-
-;; Find file at point
-(require 'ffap)
-(defvar ffap-c-commment-regexp "^/\\*+"
-  "Matches an opening C-style comment, like \"/***\".")
-
-(defadvice ffap-guesser (after avoid-c-comments activate)
-  "Don't return paths like \"/******\" unless they actually exist.
-
-This fixes the bug where ido would try to suggest a C-style
-comment as a filename."
-  (ignore-errors
-    (when (and ad-return-value
-               (string-match-p ffap-c-commment-regexp
-                               ad-return-value)
-               (not (ffap-file-exists-string ad-return-value)))
-      (setq ad-return-value nil))))
-
-; Enable fuzzy matching
-(setq ido-enable-flex-matching t)
-
-;; Tabbar mode
-;(autoload 'tabbar-mode "tabbar" t)
-(tabbar-mode)
-
-;; Tweak faces in tabbar mode
-(set-face-attribute
- 'tabbar-default nil
- :background "gray60")
-(set-face-attribute
- 'tabbar-unselected nil
- :background "gray85"
- :foreground "gray30"
- :box nil)
-(set-face-attribute
- 'tabbar-selected nil
- :background "#f2f2f6"
- :foreground "black"
- :box nil)
-(set-face-attribute
- 'tabbar-button nil
- :box '(:line-width 1 :color "gray72" :style released-button))
-(set-face-attribute
- 'tabbar-separator nil
- :height 0.7)
-
-;; Ctrl-Tab/Ctrl-Shift-Tab for going forward/backwards between tabs
-(if linux-p
-    (define-key global-map [(control shift iso-lefttab)] 'tabbar-backward))
-(if mswindows-p
-    (define-key global-map [(control shift tab)] 'tabbar-backward))
-(define-key global-map [(control tab)] 'tabbar-forward)
-
 ;; Make text-mode the default
 (setq default-major-mode 'text-mode)
-
-;; Yasnippet
-(yas-global-mode 1)
-
-;; Haskell-mode tweaks
-(setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-(add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
-(eval-after-load "haskell-mode"
-    '(progn
-       (define-key haskell-mode-map (kbd "C-,") 'haskell-move-nested-left)
-       (define-key haskell-mode-map (kbd "C-.") 'haskell-move-nested-right)
-       (define-key haskell-mode-map (kbd "C-c C-c") 'haskell-compile)
-       (define-key haskell-mode-map (kbd "C-x C-d") nil)
-       (define-key haskell-mode-map (kbd "C-c C-z") 'haskell-interactive-switch)
-       (define-key haskell-mode-map (kbd "C-c C-l") 'haskell-process-load-file)
-       (define-key haskell-mode-map (kbd "C-c C-b") 'haskell-interactive-switch)
-       (define-key haskell-mode-map (kbd "C-c C-t") 'haskell-process-do-type)
-       (define-key haskell-mode-map (kbd "C-c C-i") 'haskell-process-do-info)
-       (define-key haskell-mode-map (kbd "C-c M-.") nil)
-       (define-key haskell-mode-map (kbd "C-c C-d") nil)))
-(eval-after-load "haskell-cabal"
-    '(define-key haskell-cabal-mode-map (kbd "C-c C-c") 'haskell-compile))
-(eval-after-load "which-func"
-  '(add-to-list 'which-func-modes 'haskell-mode))
-
-;; Agda2 mode
-;(if linux-p
-;   (load-file (let ((coding-system-for-read 'utf-8))
-;                (shell-command-to-string "agda-mode locate"))))
-
-;; AuCTeX mode (Linux-only for now)
-(add-hook 'LaTeX-mode-hook 'TeX-PDF-mode)
-
-;; Set C-TAB in scala-mode to the default value.
-(defun my-scala-mode-hook ()
-  (local-unset-key [(control tab)]))
-(add-hook 'scala-mode-hook 'my-scala-mode-hook)
-
-;; Separate custom file.
-(setq custom-file "~/.emacs.d/custom.el")
-(load custom-file 'noerror)
 
 ;; Count words
 (defun count-words (&optional begin end)
