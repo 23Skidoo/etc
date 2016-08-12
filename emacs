@@ -2,7 +2,6 @@
 
 ;; Time my .emacs.
 (defvar *emacs-load-start* (current-time))
-
 ;; Common Lisp compatibility
 (require 'cl)
 
@@ -15,12 +14,15 @@
 (load custom-file 'noerror)
 
 ;; Dependencies
+(setq load-prefer-newer t)
 (require 'package)
 (add-to-list 'package-archives
          '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives
-         '("marmalade" . "https://marmalade-repo.org/packages/") t)
+         '("marmalade" . "http://marmalade-repo.org/packages/") t)
 (package-initialize)
+(when (not package-archive-contents)
+  (package-refresh-contents))
 (if (require 'quelpa nil t)
   (quelpa-self-upgrade)
   (with-temp-buffer
@@ -30,71 +32,72 @@
 (quelpa '(quelpa-use-package :fetcher github :repo "quelpa/quelpa-use-package"))
 (require 'use-package)
 (require 'quelpa-use-package)
-(setq use-package-always-ensure t)
+
+;; TODO
+;; (use-package bind-key)
+;; (use-package my-settings)
 
 (use-package abbrev
-  :ensure nil
-  :diminish abbrev-mode
   :config
     (if (file-exists-p abbrev-file-name)
         (quietly-read-abbrev-file)))
 
-(use-package ag :quelpa)
+(use-package ag :quelpa :defer t
+  :config (setq ag-highlight-search t
+                ag-reuse-buffers t))
 
 ;; Alias for align-regexp
 (use-package align
   :bind ("C-x a r" . align-regexp))
 
-(use-package auctex :quelpa
-  :mode ("\\.tex\\'" . latex-mode)
-  :commands (latex-mode LaTeX-mode plain-tex-mode)
-  :init ;; (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
-        ;; (add-hook 'LaTeX-mode-hook #'flyspell-mode)
-        ;; (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
+(use-package auctex :ensure t :defer t
+  :init (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
+        (add-hook 'LaTeX-mode-hook #'flyspell-mode)
+        (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
         (setq TeX-auto-save t
               TeX-parse-self t
               TeX-save-query nil
               TeX-PDF-mode t))
 
-(use-package color-theme)
-(use-package color-theme-solarized :quelpa :demand
-             :init (load-theme 'solarized))
-;;   (setq solarized-italic nil)
-;; (setq color-theme-is-global nil)
-;; ;; Enable color-theme-solarized only for emacsclient -w.
-;; (defvar after-make-console-frame-hooks '()
-;;   "Hooks to run after creating a new TTY frame")
-;; (defvar after-make-window-system-frame-hooks '()
-;;   "Hooks to run after creating a new window-system frame")
+(use-package beacon :quelpa
+  :config (beacon-mode 1))
 
-;; (defun run-after-make-frame-hooks (frame)
-;;   "Selectively run either `after-make-console-frame-hooks' or
-;; `after-make-window-system-frame-hooks'"
-;;   (select-frame frame)
-;;   (run-hooks (if window-system
-;;                  'after-make-window-system-frame-hooks
-;;                'after-make-console-frame-hooks)))
+(setq color-themes '())
+(use-package color-theme-solarized :quelpa
+  :config (setq solarized-italic nil
+                x-underline-at-descent-line t)
+          (load-theme 'solarized)
+          (add-hook 'after-make-frame-functions
+                    (lambda (frame)
+                      (let ((mode (if (display-graphic-p frame) 'light 'light)))
+                        (set-frame-parameter frame 'background-mode mode)
+                        (set-terminal-parameter frame 'background-mode mode))
+                      (enable-theme 'solarized))))
 
-;; (add-hook 'after-make-frame-functions 'run-after-make-frame-hooks)
-;; (add-hook 'after-init-hook
-;;           (lambda ()
-;;             (run-after-make-frame-hooks (selected-frame))))
-
-;; (add-hook 'after-make-window-system-frame-hooks
-;;           (lambda () (load-theme 'solarized)))
-
-(use-package diminish :quelpa :demand)
-
-(use-package company :quelpa :demand
+(use-package smart-mode-line :quelpa
   :config
-    (company-mode t)
+    (sml/setup)
+    (use-package rich-minority
+      :config
+      (setq rm-blacklist
+            (mapconcat #'identity
+                       '(" (\\*)" " Abbrev" " company" " ew\\:[mnltMNLT]+" "PgLn")
+                       "\\|"))))
+
+(use-package company :quelpa
+  :config
+    (global-company-mode)
     (use-package company-flx :quelpa :config (company-flx-mode t))
     (use-package company-quickhelp :quelpa :config (company-quickhelp-mode t))
     (use-package company-cabal :quelpa
-       :config (add-to-list 'company-backends 'company-cabal)))
+      :config (add-to-list 'company-backends 'company-cabal))
+    (use-package company-auctex :quelpa
+      :config (company-auctex-init)))
+
+(use-package dockerfile-mode :quelpa :defer t)
 
 ;; Be obsessive-compulsive about trailing whitespace.
-(use-package ethan-wspace :quelpa :demand
+(use-package ethan-wspace :quelpa
   :init
     (setq mode-require-final-newline nil)
   :config
@@ -102,16 +105,15 @@
     (setq ethan-wspace-face '(t (:background "#05ff00")))
     (setq ethan-wspace-face-customized t))
 
-(use-package haskell-mode :quelpa
+(use-package intero :quelpa :defer t)
+
+(use-package haskell-mode :quelpa :defer t
   :init
     (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
     (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
   :config
     (setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
-    (use-package haskell-cabal
-                 :commands haskell-cabal-mode
-                 :mode "\\.cabal\\'"
-                 :ensure nil
+    (use-package haskell-cabal :defer t
                  :bind-keymap ("C-c C-c" . haskell-compile))
   :bind-keymap
     (("C-," . haskell-move-nested-left)
@@ -125,13 +127,9 @@
      ("C-c M-." . nil)
      ("C-c C-d" . nil)))
 
-(use-package which-func
-  :ensure nil
-  :config (add-to-list 'which-func-modes 'haskell-mode))
+(use-package htmlize :ensure t :defer t)
 
-(use-package htmlize :quelpa)
-
-(use-package ido :demand
+(use-package ido
   :init
     (setq ido-enable-prefix nil
           ido-enable-flex-matching t
@@ -141,41 +139,35 @@
           ido-use-filename-at-point 'guess)
   :config
     (ido-mode t)
+    (setq ido-use-faces t)
     (use-package ido-ubiquitous :quelpa :config (ido-ubiquitous-mode t))
     (use-package flx-ido :quelpa :config (flx-ido-mode t))
-    (use-package ido-vertical-mode :quelpa :config (ido-vertical-mode t))
+    (use-package ido-vertical-mode :quelpa
+      :config
+        (ido-vertical-mode t)
+        (setq ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
+        (setq ido-vertical-show-count t))
     (use-package ido-yes-or-no :quelpa :config (ido-yes-or-no-mode t)))
 
-(use-package ielm
-  :ensure nil
-  :config
-    (add-hook 'inferior-emacs-lisp-mode-hook
-              (lambda ()
-                (turn-on-eldoc-mode))))
+(use-package markdown-mode :quelpa :defer t)
 
-(use-package intero :quelpa)
-
-(use-package markdown-mode :quelpa)
+(use-package page-break-lines :quelpa
+  :config (global-page-break-lines-mode))
 
 ;; Highlight matching parentheses.
 (use-package paren
-  :config
-    (show-paren-mode t))
+  :config (show-paren-mode t))
 
-(use-package pos-tip :quelpa)
-
-(use-package projectile :quelpa)
+(use-package projectile :quelpa :defer t)
 
 (use-package recentf
   :config
     (setq recentf-save-file (expand-file-name "~/.recentf"))
     (recentf-mode t))
 
-(use-package rect-mark)
+(use-package rect-mark :ensure t :defer t)
 
-(use-package rst-mode :quelpa)
-
-(use-package smex :quelpa :demand
+(use-package smex :quelpa
   :bind (("M-x" . smex)
          ("M-X" . smex-major-mode-commands)
          ("C-c M-x" . execute-extended-command)))
@@ -196,10 +188,10 @@
 
  :bind
    ;; Ctrl-Tab/Ctrl-Shift-Tab for going forward/backwards between tabs
-   (([control shift tab] . tabbar-backward)
-    ([control tab] . tabbar-forward)))
+   (("C-S-<iso-lefttab>" . tabbar-backward)
+    ("C-<tab>" . tabbar-forward)))
 
-(use-package yaml-mode :quelpa)
+(use-package yaml-mode :quelpa :defer t)
 
 (use-package yasnippet :quelpa
   :init (yas-global-mode 1))
@@ -225,16 +217,14 @@
 (when (fboundp 'scroll-bar-mode)
   (scroll-bar-mode 0))
 (use-package fringe
-  :ensure nil
   :config (set-fringe-mode nil))
 (when (fboundp 'horizontal-scroll-bar-mode)
   (horizontal-scroll-bar-mode 0))
 ;; Unique bufffer names
 (use-package uniquify
-  :ensure nil
   :config (setq uniquify-buffer-name-style 'forward))
 ;; Save point position in visited files.
-(use-package saveplace :demand
+(use-package saveplace
   :config (setq-default save-place t))
 ;; Save minibuffer history.
 (use-package savehist
@@ -245,7 +235,6 @@
     (savehist-mode t))
 
 (use-package misc
-  :ensure nil
   :bind ("M-z" . zap-up-to-char))
 
 (use-package hippie-exp
@@ -255,7 +244,6 @@
   :bind ("C-x C-b" . ibuffer))
 
 (use-package isearch
-  :ensure nil
   :bind
     ("C-s" . isearch-forward-regexp)
     ("C-r" . isearch-backward-regexp)
@@ -279,7 +267,6 @@
 
 ;; Show line and column numbers
 (use-package simple
-  :ensure nil
   :config
     (line-number-mode 1)
     (column-number-mode 1))
@@ -331,18 +318,22 @@
 (global-set-key (kbd "M-H") (lambda () (interactive) (enlarge-window -1 t)))
 (global-set-key (kbd "M-L") (lambda () (interactive) (enlarge-window 1 t)))
 
-(global-set-key (kbd "M-j") 'windmove-down)
-(global-set-key (kbd "M-k") 'windmove-up)
-(global-set-key (kbd "M-h") 'windmove-left)
-(global-set-key (kbd "M-l") 'windmove-right)
+(use-package windmove
+  :bind*
+    (("M-j" . windmove-down)
+     ("M-k" . windmove-up)
+     ("M-h" . windmove-left)
+     ("M-l" . windmove-right)))
 
 ;; Enable upcase-region
 (put 'upcase-region 'disabled nil)
 
 ;; Encoding
-(set-language-environment "Russian")
-(setq default-buffer-file-coding-system 'utf-8-unix)
-(prefer-coding-system 'utf-8)
+(use-package mule
+  :config
+    (set-language-environment "Russian")
+    (setq default-buffer-file-coding-system 'utf-8-unix)
+    (prefer-coding-system 'utf-8))
 
 ;; Ask before killing unsaved buffer
 (defun ask-before-killing-buffer ()
@@ -388,8 +379,8 @@
 (if mswindows-p
     (add-to-list 'default-frame-alist
 '(font . "-outline-Consolas-normal-r-normal-normal-13-97-96-96-c-*-iso8859-5")))
-(when linux-p (add-to-list 'default-frame-alist '(font-backend . "xft"))
-      (add-to-list 'default-frame-alist '(font . "Terminus-10")))
+ (when linux-p (add-to-list 'default-frame-alist '(font-backend . "xft"))
+       (add-to-list 'default-frame-alist '(font . "Terminus-10")))
 
 ;; Flicker instead of beep
 (setq visible-bell 1)
@@ -405,9 +396,6 @@
     ;; Scroll output of *compilation*
     (setq compilation-scroll-output 'first-error))
 
-(use-package dockerfile-mode :quelpa
-  :mode ("Dockerfile\\'" . dockerfile-mode))
-
 ;; Indicate empty lines.
 (set-default 'indicate-empty-lines t)
 
@@ -416,9 +404,11 @@
 
 ;; Dired tweaks
 ;; Allow deletion of non-empty directories
-(setq dired-recursive-deletes 'top)
-;; Enable 'a' key
-(put 'dired-find-alternate-file 'disabled nil)
+(use-package dired
+  :init
+    (setq dired-recursive-deletes 'top)
+    ;; Enable 'a' key
+    (put 'dired-find-alternate-file 'disabled nil))
 
 ;; Shell mode tweaks
 (setq ansi-color-names-vector           ; better contrast colors
@@ -434,7 +424,7 @@
 (setq vc-handled-backends nil)
 
 ;; Make text-mode the default
-(setq default-major-mode 'text-mode)
+(setq-default major-mode 'text-mode)
 
 ;; Count words
 (defun count-words (&optional begin end)
