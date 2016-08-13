@@ -424,6 +424,15 @@
 
 (use-package rect-mark :ensure t :pin marmalade :defer t)
 
+(use-package rust-mode :quelpa :defer t
+  :init (use-package cargo :quelpa :defer t)
+        (use-package racer :quelpa :defer t)
+        (add-hook 'rust-mode-hook #'cargo-minor-mode)
+        (add-hook 'rust-mode-hook #'racer-mode)
+        (add-hook 'racer-mode-hook #'company-mode)
+  :bind (:map rust-mode-map
+         ([tab] . company-indent-or-complete-common)))
+
 (use-package smex :quelpa
   :bind (("M-x" . smex)
          ("M-X" . smex-major-mode-commands)
@@ -447,6 +456,8 @@
    ;; Ctrl-Tab/Ctrl-Shift-Tab for going forward/backwards between tabs
    (("C-S-<iso-lefttab>" . tabbar-backward)
     ("C-<tab>" . tabbar-forward)))
+
+(use-package toml-mode :quelpa :defer t)
 
 (use-package yaml-mode :quelpa :defer t)
 
