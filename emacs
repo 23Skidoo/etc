@@ -314,7 +314,7 @@
   :config (setq ag-highlight-search t
                 ag-reuse-buffers t))
 
-(use-package auctex :ensure t :pin elpa :defer t
+(use-package auctex :ensure t :pin gnu :defer t
   :init (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
         (add-hook 'LaTeX-mode-hook #'flyspell-mode)
         (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
@@ -420,7 +420,7 @@
   :config (global-page-break-lines-mode))
 
 (use-package projectile :quelpa :defer t
-  :config (projectile-global-mode t))
+  :init (projectile-global-mode t))
 
 (use-package rect-mark :ensure t :pin marmalade :defer t)
 
