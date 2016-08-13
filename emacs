@@ -78,7 +78,7 @@
 
 ; Make (shebanged) scripts executable automatically.
 (add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
+          #'executable-make-buffer-file-executable-if-script-p)
 
 ;; M-w with no active region copies a line.
 (defadvice kill-ring-save
@@ -161,8 +161,8 @@
 (setq ansi-color-names-vector           ; better contrast colors
       ["black" "red4" "green4" "yellow4"
        "blue3" "magenta4" "cyan4" "white"])
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-(add-hook 'shell-mode-hook '(lambda () (toggle-truncate-lines 1)))
+(add-hook 'shell-mode-hook #'ansi-color-for-comint-mode-on)
+(add-hook 'shell-mode-hook (lambda () (toggle-truncate-lines 1)))
 (setq comint-prompt-read-only t)
 (if linux-p
     (setenv "ESHELL" (expand-file-name "~/bin/eshell")))
@@ -374,8 +374,8 @@
 
 (use-package haskell-mode :quelpa :defer t
   :init
-    (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
-    (add-hook 'haskell-mode-hook 'turn-on-haskell-decl-scan)
+    (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
+    (add-hook 'haskell-mode-hook #'turn-on-haskell-decl-scan)
   :config
     (setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
     (use-package haskell-cabal :defer t
