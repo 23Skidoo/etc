@@ -1,20 +1,24 @@
 ;; -*- emacs-lisp -*-
 
+;;;; Prologue.
+
 ;; Time my .emacs.
 (defvar *emacs-load-start* (current-time))
-;; Common Lisp compatibility
+;; Common Lisp compatibility.
 (require 'cl)
 
-;; OS detection
-(defconst mswindows-p (string-match "windows" (symbol-name system-type)))
-(defconst linux-p (string-match "linux" (symbol-name system-type)))
+;; OS detection.
+(defconst mswindows-p (eq system-type 'mswindows))
+(defconst linux-p     (eq system-type 'gnu/linux))
 
 ;; Separate custom file.
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file 'noerror)
 
-;; Dependencies
+;; Don't load stale bytecode.
 (setq load-prefer-newer t)
+
+;; Set up package management.
 (require 'package)
 (add-to-list 'package-archives
          '("melpa" . "https://melpa.org/packages/") t)
@@ -33,24 +37,284 @@
 (require 'use-package)
 (require 'quelpa-use-package)
 
-;; TODO
-;; (use-package bind-key)
-;; (use-package my-settings)
+;;;; My settings.
+
+;; Do not show splash screen.
+(setq inhibit-startup-message t)
+
+;; Fix clipboard on Linux.
+(if linux-p
+    (progn
+      (setq x-select-enable-primary nil)
+      (setq x-select-enable-clipboard t)))
+
+;; Don't clutter current directory with backups.
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
+
+;; Misc tweaks.
+(setq scroll-step 1)
+(setq scroll-conservatively 5)
+
+(menu-bar-mode 0)
+(set-fringe-mode '(8 . 0))
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode 0))
+(when (fboundp 'scroll-bar-mode)
+  (scroll-bar-mode 0))
+(when (fboundp 'horizontal-scroll-bar-mode)
+  (horizontal-scroll-bar-mode 0))
+
+;; Spaces instead of tabs.
+(setq-default indent-tabs-mode nil)
+;; Tabs == 4 spaces.
+(setq-default tab-width 4)
+
+(setq save-interprogram-paste-before-kill t
+      apropos-do-all t
+      mouse-yank-at-point t
+      load-prefer-newer t
+      ediff-window-setup-function 'ediff-setup-windows-plain
+      save-place-file (concat user-emacs-directory "places"))
+
+; Make (shebanged) scripts executable automatically.
+(add-hook 'after-save-hook
+          'executable-make-buffer-file-executable-if-script-p)
+
+;; M-w with no active region copies a line.
+(defadvice kill-ring-save
+  (before slick-copy activate compile)
+  "When called interactively with no active region, copy a single
+  line instead."
+  (interactive
+   (if mark-active (list (region-beginning) (region-end))
+     (message "Copied line")
+     (list (line-beginning-position) (line-beginning-position 2)))))
+
+;; C-w with no active region kills a line.
+(defadvice kill-region (before slick-cut activate compile)
+  "When called interactively with no active region, kill a single line instead."
+  (interactive
+    (if mark-active (list (region-beginning) (region-end))
+      (list (line-beginning-position)
+        (line-beginning-position 2)))))
+
+;; Enable upcase-region.
+(put 'upcase-region 'disabled nil)
+
+;; Ask before killing unsaved buffer.
+(defun ask-before-killing-buffer ()
+  (let ((buffer (current-buffer)))
+    (cond
+     ((equal (buffer-name) "*scratch*")
+      ;; Never kill *scratch*
+      nil)
+     ((and buffer-file-name (buffer-modified-p))
+      ;; If there's a file associated with the buffer,
+      ;; make sure it's saved
+      (yes-or-no-p (format "Buffer %s modified; kill anyway? "
+                           (buffer-name))))
+     ((get-buffer-process buffer)
+      ;; If there's a process associated with the buffer,
+      ;; make sure it's dead
+      (yes-or-no-p (format "Process %s active; kill anyway? "
+                           (process-name (get-buffer-process buffer)))))
+     (t t))))
+(add-to-list 'kill-buffer-query-functions
+             'ask-before-killing-buffer)
+
+;; Quickly kill current buffer with C-c C-w.
+(defun my-kill-buffer ()
+  (interactive)
+  (kill-buffer (current-buffer)))
+(global-set-key [(ctrl c) (ctrl w)] 'my-kill-buffer)
+
+;; Kill all buffers.
+(defun kill-all-buffers ()
+  (interactive)
+  (mapc 'kill-buffer (buffer-list)))
+
+;; Syntax highlighting.
+(global-font-lock-mode t)
+(setq fontlock-maximum-decoration t)
+;; Visual appearance.
+(setq icon-title-format "%b %* - GNU Emacs")
+(setq frame-title-format "%f %* - GNU Emacs")
+;; Font.
+(if mswindows-p
+    (add-to-list 'default-frame-alist
+'(font . "-outline-Consolas-normal-r-normal-normal-13-97-96-96-c-*-iso8859-5")))
+ (when linux-p (add-to-list 'default-frame-alist '(font-backend . "xft"))
+       (add-to-list 'default-frame-alist '(font . "Terminus-10")))
+
+;; Flicker instead of beep.
+(setq visible-bell 1)
+;; Highlight selected region.
+(setq-default transient-mark-mode t)
+
+;; Indicate empty lines.
+(set-default 'indicate-empty-lines t)
+
+;; Set encoding for .nfo files.
+(modify-coding-system-alist 'file "\\.nfo\\'" 'cp437)
+
+;; Shell mode tweaks.
+(setq ansi-color-names-vector           ; better contrast colors
+      ["black" "red4" "green4" "yellow4"
+       "blue3" "magenta4" "cyan4" "white"])
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+(add-hook 'shell-mode-hook '(lambda () (toggle-truncate-lines 1)))
+(setq comint-prompt-read-only t)
+(if linux-p
+    (setenv "ESHELL" (expand-file-name "~/bin/eshell")))
+
+;; Disable vc.
+(setq vc-handled-backends nil)
+
+;; Make text-mode the default.
+(setq-default major-mode 'text-mode)
+
+;;;; Built-in packages.
 
 (use-package abbrev
   :config
     (if (file-exists-p abbrev-file-name)
         (quietly-read-abbrev-file)))
 
+(use-package align
+  :bind ("C-x a r" . align-regexp))
+
+(use-package compile
+  :bind ([f8] . recompile)
+  :init
+    (setq mode-compile-always-save-buffer-p t)
+    ;; Make the compile window stick at 12 lines tall
+    (setq compilation-window-height 12)
+    ;; Scroll output of *compilation*
+    (setq compilation-scroll-output 'first-error))
+
+(use-package delsel
+  ;; Typed text replaces selection when selection is active.
+  :config (delete-selection-mode t))
+
+(use-package dired
+  :init
+    ;; Allow deletion of non-empty directories.
+    (setq dired-recursive-deletes 'top)
+    ;; Enable 'a' key.
+    (put 'dired-find-alternate-file 'disabled nil))
+
+(use-package hippie-exp
+  :bind ("M-/" . hippie-expand))
+
+(use-package ibuffer
+  :bind ("C-x C-b" . ibuffer))
+
+(use-package isearch
+  :bind
+    ("C-s" . isearch-forward-regexp)
+    ("C-r" . isearch-backward-regexp)
+    ("C-M-s" . isearch-forward)
+    ("C-M-r" . isearch-backward))
+
+(use-package misc
+  :bind ("M-z" . zap-up-to-char))
+
+;; Encoding/language.
+(use-package mule
+  :preface
+    (defun set-input-method-russian-computer () (interactive)
+           (set-input-method "russian-computer"))
+    (defun set-input-method-swedish-postfix () (interactive)
+           (set-input-method "swedish-postfix"))
+  :bind*
+    (([f6] . set-input-method-russian-computer)
+     ([f7] . set-input-method-swedish-postfix))
+
+  :config
+    (set-language-environment "Russian")
+    (setq default-buffer-file-coding-system 'utf-8-unix)
+    (prefer-coding-system 'utf-8))
+
+(use-package paren
+  :config
+    ;; Highlight matching parentheses.
+    (show-paren-mode t))
+
+(use-package recentf
+  :config
+    (setq recentf-save-file (expand-file-name "~/.recentf"))
+    (recentf-mode t))
+
+;; Save minibuffer history.
+(use-package savehist
+  :config
+    (setq savehist-additional-variables
+          '(kill-ring mark-ring global-mark-ring search-ring
+                      regexp-search-ring extended-command-history))
+    (savehist-mode t))
+
+;; Save point position in visited files.
+(use-package saveplace
+  :config (setq-default save-place t))
+
+;; Show line and column numbers
+(use-package simple
+  :config
+    (line-number-mode 1)
+    (column-number-mode 1))
+
+;; More sane window management
+(use-package windmove
+  :preface
+  (defun swap-with (dir)
+    (interactive)
+    (let ((other-window (windmove-find-other-window dir)))
+      (when other-window
+        (let* ((this-window (selected-window))
+               (this-buffer (window-buffer this-window))
+               (other-buffer (window-buffer other-window))
+               (this-start (window-start this-window))
+               (other-start (window-start other-window)))
+          (set-window-buffer this-window other-buffer)
+          (set-window-buffer other-window this-buffer)
+          (set-window-start this-window other-start)
+          (set-window-start other-window this-start)))))
+
+  (defun swap-with-down  () (interactive) (swap-with 'down))
+  (defun swap-with-up    () (interactive) (swap-with 'up))
+  (defun swap-with-left  () (interactive) (swap-with 'left))
+  (defun swap-with-right () (interactive) (swap-with 'right))
+
+  (defun enlarge-window-plus      () (interactive) (enlarge-window  1))
+  (defun enlarge-window-minus     () (interactive) (enlarge-window -1))
+  (defun enlarge-window-hor-plus  () (interactive) (enlarge-window  1 t))
+  (defun enlarge-window-hor-minus () (interactive) (enlarge-window -1 t))
+
+  :bind*
+    (("C-M-J" . swap-with-down)
+     ("C-M-K" . swap-with-up)
+     ("C-M-H" . swap-with-left)
+     ("C-M-L" . swap-with-right)
+     ("M-J"   . enlarge-window-plus)
+     ("M-K"   . enlarge-window-minus)
+     ("M-H"   . enlarge-window-hor-plus)
+     ("M-L"   . enlarge-window-hor-minus)
+     ("M-j"   . windmove-down)
+     ("M-k"   . windmove-up)
+     ("M-h"   . windmove-left)
+     ("M-l"   . windmove-right)))
+
+;; Unique bufffer names.
+(use-package uniquify
+  :config (setq uniquify-buffer-name-style 'forward))
+
+;;;; External packages.
+
 (use-package ag :quelpa :defer t
   :config (setq ag-highlight-search t
                 ag-reuse-buffers t))
 
-;; Alias for align-regexp
-(use-package align
-  :bind ("C-x a r" . align-regexp))
-
-(use-package auctex :ensure t :defer t
+(use-package auctex :ensure t :pin elpa :defer t
   :init (add-hook 'LaTeX-mode-hook #'LaTeX-preview-setup)
         (add-hook 'LaTeX-mode-hook #'flyspell-mode)
         (add-hook 'LaTeX-mode-hook #'turn-on-reftex)
@@ -81,7 +345,8 @@
       :config
       (setq rm-blacklist
             (mapconcat #'identity
-                       '(" (\\*)" " Abbrev" " company" " ew\\:[mnltMNLT]+" "PgLn")
+                       '(" (\\*)" " Abbrev" " company"
+                         " ew\\:[mnltMNLT]+" "PgLn" "Projectile")
                        "\\|"))))
 
 (use-package company :quelpa
@@ -127,7 +392,7 @@
      ("C-c M-." . nil)
      ("C-c C-d" . nil)))
 
-(use-package htmlize :ensure t :defer t)
+(use-package htmlize :ensure t :pin melpa :defer t)
 
 (use-package ido
   :init
@@ -154,18 +419,10 @@
 (use-package page-break-lines :quelpa
   :config (global-page-break-lines-mode))
 
-;; Highlight matching parentheses.
-(use-package paren
-  :config (show-paren-mode t))
+(use-package projectile :quelpa :defer t
+  :config (projectile-global-mode t))
 
-(use-package projectile :quelpa :defer t)
-
-(use-package recentf
-  :config
-    (setq recentf-save-file (expand-file-name "~/.recentf"))
-    (recentf-mode t))
-
-(use-package rect-mark :ensure t :defer t)
+(use-package rect-mark :ensure t :pin marmalade :defer t)
 
 (use-package smex :quelpa
   :bind (("M-x" . smex)
@@ -196,235 +453,7 @@
 (use-package yasnippet :quelpa
   :init (yas-global-mode 1))
 
-;; Do not show splash screen
-(setq inhibit-startup-message t)
-
-;; Fix clipboard on Linux
-(if linux-p
-    (progn
-      (setq x-select-enable-primary nil)
-      (setq x-select-enable-clipboard t)))
-
-;; Don't clutter current directory with backups.
-(setq backup-directory-alist `(("." . ,(concat user-emacs-directory "backups"))))
-
-;; Misc tweaks.
-(setq scroll-step 1)
-(setq scroll-conservatively 5)
-(menu-bar-mode 0)
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode 0))
-(when (fboundp 'scroll-bar-mode)
-  (scroll-bar-mode 0))
-(use-package fringe
-  :config (set-fringe-mode nil))
-(when (fboundp 'horizontal-scroll-bar-mode)
-  (horizontal-scroll-bar-mode 0))
-;; Unique bufffer names
-(use-package uniquify
-  :config (setq uniquify-buffer-name-style 'forward))
-;; Save point position in visited files.
-(use-package saveplace
-  :config (setq-default save-place t))
-;; Save minibuffer history.
-(use-package savehist
-  :config
-    (setq savehist-additional-variables
-          '(kill-ring mark-ring global-mark-ring search-ring
-                      regexp-search-ring extended-command-history))
-    (savehist-mode t))
-
-(use-package misc
-  :bind ("M-z" . zap-up-to-char))
-
-(use-package hippie-exp
-  :bind ("M-/" . hippie-expand))
-
-(use-package ibuffer
-  :bind ("C-x C-b" . ibuffer))
-
-(use-package isearch
-  :bind
-    ("C-s" . isearch-forward-regexp)
-    ("C-r" . isearch-backward-regexp)
-    ("C-M-s" . isearch-forward)
-    ("C-M-r" . isearch-backward))
-
-(setq-default indent-tabs-mode nil)
-(setq save-interprogram-paste-before-kill t
-      apropos-do-all t
-      mouse-yank-at-point t
-      load-prefer-newer t
-      ediff-window-setup-function 'ediff-setup-windows-plain
-      save-place-file (concat user-emacs-directory "places"))
-
-(use-package delsel
-  :config (delete-selection-mode t))
-
-; Make (shebanged) scripts executable automatically
-(add-hook 'after-save-hook
-          'executable-make-buffer-file-executable-if-script-p)
-
-;; Show line and column numbers
-(use-package simple
-  :config
-    (line-number-mode 1)
-    (column-number-mode 1))
-
-;; Copy lines without selecting them
-(defadvice kill-ring-save
-  (before slick-copy activate compile)
-  "When called interactively with no active region, copy a single
-  line instead."
-  (interactive
-   (if mark-active (list (region-beginning) (region-end))
-     (message "Copied line")
-     (list (line-beginning-position) (line-beginning-position 2)))))
-
-(defadvice kill-region (before slick-cut activate compile)
-  "When called interactively with no active region, kill a single line instead."
-  (interactive
-    (if mark-active (list (region-beginning) (region-end))
-      (list (line-beginning-position)
-        (line-beginning-position 2)))))
-
-;; language settings
-(global-set-key [f6] '(lambda () (interactive)
-                        (set-input-method "russian-computer")))
-(global-set-key [f7] '(lambda () (interactive)
-                        (set-input-method "swedish-postfix")))
-;; More sane window management
-(defun swap-with (dir)
-  (interactive)
-  (let ((other-window (windmove-find-other-window dir)))
-    (when other-window
-      (let* ((this-window (selected-window))
-             (this-buffer (window-buffer this-window))
-             (other-buffer (window-buffer other-window))
-             (this-start (window-start this-window))
-             (other-start (window-start other-window)))
-        (set-window-buffer this-window other-buffer)
-        (set-window-buffer other-window this-buffer)
-        (set-window-start this-window other-start)
-        (set-window-start other-window this-start)))))
-
-(global-set-key (kbd "C-M-J") (lambda () (interactive) (swap-with 'down)))
-(global-set-key (kbd "C-M-K") (lambda () (interactive) (swap-with 'up)))
-(global-set-key (kbd "C-M-H") (lambda () (interactive) (swap-with 'left)))
-(global-set-key (kbd "C-M-L") (lambda () (interactive) (swap-with 'right)))
-
-(global-set-key (kbd "M-J") (lambda () (interactive) (enlarge-window 1)))
-(global-set-key (kbd "M-K") (lambda () (interactive) (enlarge-window -1)))
-(global-set-key (kbd "M-H") (lambda () (interactive) (enlarge-window -1 t)))
-(global-set-key (kbd "M-L") (lambda () (interactive) (enlarge-window 1 t)))
-
-(use-package windmove
-  :bind*
-    (("M-j" . windmove-down)
-     ("M-k" . windmove-up)
-     ("M-h" . windmove-left)
-     ("M-l" . windmove-right)))
-
-;; Enable upcase-region
-(put 'upcase-region 'disabled nil)
-
-;; Encoding
-(use-package mule
-  :config
-    (set-language-environment "Russian")
-    (setq default-buffer-file-coding-system 'utf-8-unix)
-    (prefer-coding-system 'utf-8))
-
-;; Ask before killing unsaved buffer
-(defun ask-before-killing-buffer ()
-  (let ((buffer (current-buffer)))
-    (cond
-     ((equal (buffer-name) "*scratch*")
-      ;; Never kill *scratch*
-      nil)
-     ((and buffer-file-name (buffer-modified-p))
-      ;; If there's a file associated with the buffer,
-      ;; make sure it's saved
-      (yes-or-no-p (format "Buffer %s modified; kill anyway? "
-                           (buffer-name))))
-     ((get-buffer-process buffer)
-      ;; If there's a process associated with the buffer,
-      ;; make sure it's dead
-      (yes-or-no-p (format "Process %s active; kill anyway? "
-                           (process-name (get-buffer-process buffer)))))
-     (t t))))
-(add-to-list 'kill-buffer-query-functions
-             'ask-before-killing-buffer)
-
-;; Quickly kill current buffer with C-c C-w
-(defun my-kill-buffer ()
-  (interactive)
-  (kill-buffer (current-buffer)))
-(global-set-key [(ctrl c) (ctrl w)] 'my-kill-buffer)
-
-;; Kill all buffers.
-(defun kill-all-buffers ()
-  (interactive)
-  (mapc 'kill-buffer (buffer-list)))
-
-;; turn on syntax highlighting
-(global-font-lock-mode t)
-(setq fontlock-maximum-decoration t)
-;; tabs == 4 spaces
-(setq-default tab-width 4)
-;; visual appearance
-(setq icon-title-format "%b %* - GNU Emacs")
-(setq frame-title-format "%f %* - GNU Emacs")
-;; Adjust font
-(if mswindows-p
-    (add-to-list 'default-frame-alist
-'(font . "-outline-Consolas-normal-r-normal-normal-13-97-96-96-c-*-iso8859-5")))
- (when linux-p (add-to-list 'default-frame-alist '(font-backend . "xft"))
-       (add-to-list 'default-frame-alist '(font . "Terminus-10")))
-
-;; Flicker instead of beep
-(setq visible-bell 1)
-;; Highlight selected region
-(setq-default transient-mark-mode t)
-
-(use-package compile
-  :bind ([f8] . recompile)
-  :init
-    (setq mode-compile-always-save-buffer-p t)
-    ;; Make the compile window stick at 12 lines tall
-    (setq compilation-window-height 12)
-    ;; Scroll output of *compilation*
-    (setq compilation-scroll-output 'first-error))
-
-;; Indicate empty lines.
-(set-default 'indicate-empty-lines t)
-
-;; Set encoding for .nfo files
-(modify-coding-system-alist 'file "\\.nfo\\'" 'cp437)
-
-;; Dired tweaks
-;; Allow deletion of non-empty directories
-(use-package dired
-  :init
-    (setq dired-recursive-deletes 'top)
-    ;; Enable 'a' key
-    (put 'dired-find-alternate-file 'disabled nil))
-
-;; Shell mode tweaks
-(setq ansi-color-names-vector           ; better contrast colors
-      ["black" "red4" "green4" "yellow4"
-       "blue3" "magenta4" "cyan4" "white"])
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-(add-hook 'shell-mode-hook '(lambda () (toggle-truncate-lines 1)))
-(setq comint-prompt-read-only t)
-(if linux-p
-    (setenv "ESHELL" (expand-file-name "~/bin/eshell")))
-
-;; Disable vc
-(setq vc-handled-backends nil)
-
-;; Make text-mode the default
-(setq-default major-mode 'text-mode)
+;;;; Helper functions.
 
 ;; Count words
 (defun count-words (&optional begin end)
@@ -449,6 +478,9 @@
       (smart-split-helper w2))))
   (smart-split-helper nil))
 
+;;;; Coda.
+
+;; Start the server.
 (server-start)
 
 ;; Time my .emacs
