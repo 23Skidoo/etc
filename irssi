@@ -5,7 +5,14 @@ servers = (
     port = "6697";
     use_ssl = "yes";
     ssl_verify = "yes";
-    ssl_capath = "/etc/ssl/certs";
+    autoconnect = "yes";
+  },
+  {
+    address = "irc.mozilla.org";
+    chatnet = "Mozilla";
+    port = "6697";
+    use_ssl = "yes";
+    ssl_verify = "yes";
     autoconnect = "yes";
   }
 );
@@ -13,16 +20,30 @@ servers = (
 chatnets = {
   Freenode = {
     type = "IRC";
-    max_kicks = "1";
-    max_msgs = "4";
-    max_whois = "1";
+    sasl_mechanism = "plain";
+    sasl_username = "refold";
+    sasl_password = "PASSWORD";
   };
+  Mozilla = {
+    type = "IRC";
+    sasl_mechanism = "plain";
+    sasl_username = "refold";
+    sasl_password = "PASSWORD";
+  };
+
 };
 
 channels = (
   { name = "#haskell"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#hackage"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#ghc"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#hackage"; chatnet = "freenode"; autojoin = "yes"; }
+  { name = "#haskell-in-depth"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#haskell-blah"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#haskell-overflow"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#agda"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#rust"; chatnet = "Mozilla"; autojoin = "yes"; },
+  { name = "#rust-beginners"; chatnet = "Mozilla"; autojoin = "yes"; }
+  { name = "#rust-gamedev"; chatnet = "Mozilla"; autojoin = "yes"; }
 );
 
 aliases = {
@@ -281,7 +302,7 @@ settings = {
   core = {
     real_name = "Mikhail Glushenkov";
     user_name = "refold";
-    nick = "refold_";
+    nick = "refold";
   };
   "fe-text" = { actlist_sort = "refnum"; };
 };
