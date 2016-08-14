@@ -37,12 +37,20 @@ channels = (
   { name = "#haskell"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#hackage"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#ghc"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#haskell-in-depth"; chatnet = "freenode"; autojoin = "yes"; },
+  {
+    name = "#haskell-in-depth";
+    chatnet = "freenode";
+    autojoin = "yes";
+  },
   { name = "#haskell-blah"; chatnet = "freenode"; autojoin = "yes"; },
-  { name = "#haskell-overflow"; chatnet = "freenode"; autojoin = "yes"; },
+  {
+    name = "#haskell-overflow";
+    chatnet = "freenode";
+    autojoin = "yes";
+  },
   { name = "#agda"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#rust"; chatnet = "Mozilla"; autojoin = "yes"; },
-  { name = "#rust-beginners"; chatnet = "Mozilla"; autojoin = "yes"; }
+  { name = "#rust-beginners"; chatnet = "Mozilla"; autojoin = "yes"; },
   { name = "#rust-gamedev"; chatnet = "Mozilla"; autojoin = "yes"; }
 );
 
@@ -306,3 +314,107 @@ settings = {
   };
   "fe-text" = { actlist_sort = "refnum"; };
 };
+windows = {
+  1 = { immortal = "yes"; name = "(status)"; level = "ALL"; };
+  2 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#haskell";
+        tag = "Freenode";
+      }
+    );
+  };
+  3 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#hackage";
+        tag = "Freenode";
+      }
+    );
+  };
+  4 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#ghc";
+        tag = "Freenode";
+      }
+    );
+  };
+  5 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#haskell-in-depth";
+        tag = "Freenode";
+      }
+    );
+  };
+  6 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#haskell-blah";
+        tag = "Freenode";
+      }
+    );
+  };
+  7 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#haskell-overflow";
+        tag = "Freenode";
+      }
+    );
+  };
+  8 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#rust";
+        tag = "Mozilla";
+      }
+    );
+  };
+  9 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#rust-beginners";
+        tag = "Mozilla";
+      }
+    );
+  };
+  10 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#rust-gamedev";
+        tag = "Mozilla";
+      }
+    );
+  };
+  11 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#agda";
+        tag = "Freenode";
+      }
+    );
+  };
+};
+mainwindows = { 1 = { first_line = "1"; lines = "43"; }; };
