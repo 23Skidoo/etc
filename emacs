@@ -27,8 +27,8 @@
 (package-initialize)
 (when (not package-archive-contents)
   (package-refresh-contents))
-(unless (require 'quelpa nil t)
-;  (quelpa-self-upgrade)
+(if (require 'quelpa nil t)
+  (quelpa-self-upgrade)
   (with-temp-buffer
     (url-insert-file-contents
      "https://raw.github.com/quelpa/quelpa/master/bootstrap.el")
@@ -376,6 +376,7 @@
   :init
     (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
     (add-hook 'haskell-mode-hook #'turn-on-haskell-decl-scan)
+;    (add-hook 'haskell-mode-hook #'intero-mode)
   :config
     (setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
     (use-package haskell-cabal :defer t
