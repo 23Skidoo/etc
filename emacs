@@ -56,7 +56,7 @@
 (setq scroll-conservatively 5)
 
 (menu-bar-mode 0)
-(set-fringe-mode '(8 . 0))
+(set-fringe-mode '(8 . 8))
 (when (fboundp 'tool-bar-mode)
   (tool-bar-mode 0))
 (when (fboundp 'scroll-bar-mode)
