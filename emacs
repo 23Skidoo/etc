@@ -370,6 +370,14 @@
     (setq ethan-wspace-face '(t (:background "#05ff00")))
     (setq ethan-wspace-face-customized t))
 
+(use-package gitattributes-mode :quelpa :defer t)
+
+(use-package git-commit :quelpa)
+
+(use-package gitconfig-mode :quelpa :defer t)
+
+(use-package gitignore-mode :quelpa :defer t)
+
 (use-package intero :quelpa :defer t)
 
 (use-package haskell-mode :quelpa :defer t
@@ -424,6 +432,8 @@
   :init (projectile-global-mode t))
 
 (use-package rect-mark :ensure t :pin marmalade :defer t)
+
+(use-package restclient :quelpa :defer t)
 
 (use-package rust-mode :quelpa :defer t
   :init (use-package cargo :quelpa :defer t)
