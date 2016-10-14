@@ -10,6 +10,7 @@ export CARGO_HOME=$HOME/.cargo
 # Set up PATH.
 export BIN_DIR=$HOME/bin
 export PATH=$PATH:/opt/ghc/8.0.2/bin
+export PATH=$PATH:/opt/ghc/bin
 export PATH=$PATH:$BIN_DIR:$HOME/.cabal/bin
 export PATH=$PATH:$HOME/.cargo/bin/
 export PATH=$PATH:/opt/cabal/1.24/bin
