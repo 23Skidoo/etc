@@ -36,6 +36,7 @@ chatnets = {
 channels = (
   { name = "#haskell"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#hackage"; chatnet = "freenode"; autojoin = "yes"; },
+  { name = "#haskell-infrastructure"; chatnet = "freenode"; autojoin = "yes"; },
   { name = "#ghc"; chatnet = "freenode"; autojoin = "yes"; },
   {
     name = "#haskell-in-depth";
@@ -341,7 +342,7 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#ghc";
+        name = "#haskell-infrastructure";
         tag = "Freenode";
       }
     );
@@ -351,7 +352,7 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#haskell-in-depth";
+        name = "#ghc";
         tag = "Freenode";
       }
     );
@@ -361,7 +362,7 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#haskell-blah";
+        name = "#haskell-in-depth";
         tag = "Freenode";
       }
     );
@@ -371,7 +372,7 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#haskell-overflow";
+        name = "#haskell-blah";
         tag = "Freenode";
       }
     );
@@ -381,8 +382,8 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#rust";
-        tag = "Mozilla";
+        name = "#haskell-overflow";
+        tag = "Freenode";
       }
     );
   };
@@ -391,7 +392,7 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#rust-beginners";
+        name = "#rust";
         tag = "Mozilla";
       }
     );
@@ -401,12 +402,22 @@ windows = {
       {
         type = "CHANNEL";
         chat_type = "IRC";
-        name = "#rust-gamedev";
+        name = "#rust-beginners";
         tag = "Mozilla";
       }
     );
   };
   11 = {
+    items = (
+      {
+        type = "CHANNEL";
+        chat_type = "IRC";
+        name = "#rust-gamedev";
+        tag = "Mozilla";
+      }
+    );
+  };
+  12= {
     items = (
       {
         type = "CHANNEL";
