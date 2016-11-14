@@ -17,6 +17,7 @@ alias ll="ls -l --group-directories-first"
 alias rezshrc="source ~/.zshrc"
 alias del="gvfs-trash -f"
 alias ocml="rlwrap ocaml"
+alias pigs="tree --du -sh --sort=size"
 
 # Turn on control keys in mpg123
 alias mpg123="mpg123 --control"
