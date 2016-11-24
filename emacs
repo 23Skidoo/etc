@@ -423,6 +423,8 @@
         (setq ido-vertical-show-count t))
     (use-package ido-yes-or-no :quelpa :config (ido-yes-or-no-mode t)))
 
+(use-package json-mode :quelpa :defer t)
+
 (use-package markdown-mode :quelpa :defer t)
 
 (use-package page-break-lines :quelpa
