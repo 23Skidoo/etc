@@ -380,6 +380,8 @@
 
 (use-package intero :quelpa :defer t)
 
+(use-package idris-mode :quelpa)
+
 (use-package haskell-mode :quelpa :defer t
   :init
     (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
