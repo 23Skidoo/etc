@@ -29,6 +29,7 @@
     fixup = !sh -c 'git commit -m \"fixup! $(git log -1 --format='\\''%s'\\'' $@)\"' -
     squash = !sh -c 'git commit -m \"squash! $(git log -1 --format='\\''%s'\\'' $@)\"' -
     ri = rebase --interactive
+    pushf = push --force-with-lease
 [merge]
     tool = meld
     conflictstyle = diff3
@@ -43,4 +44,4 @@
 [commit]
     gpgsign = true
 [gpg]
-	program = gpg2
+    program = gpg2
