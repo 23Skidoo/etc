@@ -502,8 +502,8 @@
     "Helper function to split a given window into two, the first
      of which has 80 columns."
 
-    (if (> (window-width w) (* 2 81))
-    (let ((w2 (split-window w 84 t)))
+    (if (> (window-width w) (* 2 82))
+    (let ((w2 (split-window w 82 t)))
       (smart-split-helper w2))))
   (smart-split-helper nil))
 
