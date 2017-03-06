@@ -387,8 +387,13 @@
 
 (use-package haskell-mode :quelpa :defer t
   :init
+    (defun my-haskell-mode-hook ()
+      (setq projectile-tags-command
+            "hasktags --ignore-close-implementation -e ."))
     (add-hook 'haskell-mode-hook #'turn-on-haskell-indentation)
     (add-hook 'haskell-mode-hook #'turn-on-haskell-decl-scan)
+    (add-hook 'haskell-mode-hook #'interactive-haskell-mode)
+    (add-hook 'haskell-mode-hook #'my-haskell-mode-hook)
 ;    (add-hook 'haskell-mode-hook #'intero-mode)
   :config
     (setq haskell-program-name "ghci -Wall -fno-warn-type-defaults")
@@ -436,7 +441,8 @@
   :config (global-page-break-lines-mode))
 
 (use-package projectile :quelpa :defer t
-  :init (projectile-global-mode t))
+  :init (projectile-global-mode t)
+        (make-variable-buffer-local 'projectile-tags-command))
 
 (use-package rect-mark :ensure t :pin marmalade :defer t)
 
