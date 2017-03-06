@@ -16,7 +16,7 @@
 (load custom-file 'noerror)
 
 ;; Don't load stale bytecode.
-(setq load-prefer-newer t)
+; (setq load-prefer-newer t)
 
 ;; Set up package management.
 (require 'package)
@@ -72,7 +72,6 @@
 (setq save-interprogram-paste-before-kill t
       apropos-do-all t
       mouse-yank-at-point t
-      load-prefer-newer t
       ediff-window-setup-function 'ediff-setup-windows-plain
       save-place-file (concat user-emacs-directory "places"))
 
