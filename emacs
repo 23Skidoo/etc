@@ -189,7 +189,9 @@
     ;; Make the compile window stick at 12 lines tall
     (setq compilation-window-height 12)
     ;; Scroll output of *compilation*
-    (setq compilation-scroll-output 'first-error))
+    (setq compilation-scroll-output 'first-error)
+    ;; We work in Haskell most of the time
+    (setq compile-command "cabal new-build"))
 
 (use-package delsel
   ;; Typed text replaces selection when selection is active.
