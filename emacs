@@ -362,6 +362,8 @@
 
 (use-package dockerfile-mode :quelpa :defer t)
 
+(use-package elm-mode :quelpa :defer t)
+
 ;; Be obsessive-compulsive about trailing whitespace.
 (use-package ethan-wspace :quelpa
   :init
